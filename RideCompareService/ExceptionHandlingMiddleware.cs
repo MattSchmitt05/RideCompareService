@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Newtonsoft.Json;
 using RideCompareService.Controllers.ResourceModels;
 using RideCompareService.DomainLayer.Constants;
@@ -30,30 +32,37 @@ namespace RideCompareService
             }
             catch (Exception e)
             {
-                var clientResponseWithExceptionDetails = new ClientResponseResource();
-
-                switch (e)
-                {
-                    case RideCompareBusinessBaseException _:
-                        httpContext.Response.StatusCode = 400;
-                        clientResponseWithExceptionDetails.ResultCode = ErrorType.Business;
-                        var innerExceptions = GetInnerExceptionMessages(e);
-                        clientResponseWithExceptionDetails.ResultMessage = string.Join(" ", innerExceptions);
-                        break;
-                    default:
-                        httpContext.Response.StatusCode = 500;
-                        clientResponseWithExceptionDetails.ResultCode = ErrorType.Technical;
-                        clientResponseWithExceptionDetails.ResultMessage = "There was a technical issue either in the Domain Service or in one of the external services. Please try again.";
-                        break;
-                }
-
-                httpContext.Response.Headers.Add("ExceptionType", e.GetType().Name);
-                httpContext.Response.ContentType = "application/json";
-                
-                var clientResponseJsonString = JsonConvert.SerializeObject(clientResponseWithExceptionDetails);
-
-                await httpContext.Response.WriteAsync(clientResponseJsonString);
+                await HandleException(httpContext.Response, e);
             }
+        }
+
+        private static async Task HandleException(HttpResponse httpResponse, Exception exception)
+        {
+            var clientResponseWithExceptionDetails = new ClientResponseResource();
+
+            switch (exception)
+            {
+                case RideCompareBusinessBaseException _:
+                    httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                    httpResponse.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = "Business-Type Exception";
+                    clientResponseWithExceptionDetails.ResultCode = ErrorType.Business;
+                    var innerExceptions = GetInnerExceptionMessages(exception);
+                    clientResponseWithExceptionDetails.ResultMessage = string.Join(" ", innerExceptions);
+                    break;
+                default:
+                    httpResponse.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    httpResponse.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = "Technical-Type Exception";
+                    clientResponseWithExceptionDetails.ResultCode = ErrorType.Technical;
+                    clientResponseWithExceptionDetails.ResultMessage = "There was a technical issue either in the Domain Service or in one of the external services. Please try again.";
+                    break;
+            }
+
+            httpResponse.HttpContext.Response.Headers.Add("ExceptionType", exception.GetType().Name);
+            httpResponse.HttpContext.Response.ContentType = "application/json";
+
+            var clientResponseJsonString = JsonConvert.SerializeObject(clientResponseWithExceptionDetails);
+
+            await httpResponse.WriteAsync(clientResponseJsonString).ConfigureAwait(false);
         }
 
         private static IEnumerable<string> GetInnerExceptionMessages(Exception exception)
