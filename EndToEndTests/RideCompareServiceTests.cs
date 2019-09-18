@@ -18,7 +18,7 @@ namespace EndToEndTests
         private readonly WebApplicationFactory<RideCompareService.Startup> _webApplicationFactory;
         private readonly HttpClient _httpClient;
         private IConfigurationRoot _configurationRoot;
-        private const string RideCompareEndpoint = "/api/ridecompare";
+        private const string RideCompareEndpoint = "/api/ridecompare/bestride";
 
         public RideCompareServiceTests()
         {

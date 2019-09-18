@@ -33,7 +33,7 @@ namespace ControllerTests
             var rideCompareControllerSpy = new RideCompareControllerSpy();
 
             // Act
-            var results = await rideCompareControllerSpy.Post(TestMediatorForControllerSpy.ValidClientRequestResourceMock);
+            var results = await rideCompareControllerSpy.GetBestRide(TestMediatorForControllerSpy.ValidClientRequestResourceMock);
 
             // Assert
             var actualBestRide = results.BestRide;
@@ -51,7 +51,7 @@ namespace ControllerTests
             try
             {
                 // Act
-                await rideCompareControllerSpy.Post(TestMediatorForControllerSpy.ValidClientRequestResourceMock);
+                await rideCompareControllerSpy.GetBestRide(TestMediatorForControllerSpy.ValidClientRequestResourceMock);
                 Assert.Fail($"Expected a {nameof(RideCompareNoBestRideFoundException)} to be thrown by the domain layer, but none was thrown.");
             }
             catch (RideCompareNoBestRideFoundException e)
@@ -73,7 +73,7 @@ namespace ControllerTests
             try
             {
                 // Act
-                await rideCompareControllerSpy.Post(TestMediatorForControllerSpy.ValidClientRequestResourceMock);
+                await rideCompareControllerSpy.GetBestRide(TestMediatorForControllerSpy.ValidClientRequestResourceMock);
                 Assert.Fail($"Expected a {nameof(LyftServiceInternalServerErrorException)} to be thrown by the domain layer, but none was thrown.");
             }
             catch (LyftServiceInternalServerErrorException e)

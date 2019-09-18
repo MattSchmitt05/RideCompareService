@@ -11,9 +11,10 @@ namespace RideCompareService.Controllers
     [Route("api/[controller]")]
     public class RideCompareController : ControllerBase
     {
-        // POST api/ridecompare
+        // POST api/ridecompare/bestride
         [HttpPost]
-        public async Task<ClientResponseResource> Post([FromBody]ClientRequestResource clientRequest)
+        [Route("bestride")]
+        public async Task<ClientResponseResource> GetBestRide([FromBody]ClientRequestResource clientRequest)
         {
             var rideCompareRequest = RideCompareRequestMapper.MapFrom(clientRequest);
 
